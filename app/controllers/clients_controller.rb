@@ -1,11 +1,22 @@
 class ClientsController < ApplicationController
-  def create
-    @client = Client.new(params[:client])
-    if @client.save
-      # ...
-    else
-      flash.now[:error] = "Could not save client"
-      render action: "new"
-    end
+  require "prawn"
+class ClientsController < ApplicationController
+  # Generates a PDF document with information on the client and
+  # returns it. The user will get the PDF as a file download.
+  def download_pdf
+    client = Client.find(params[:id])
+    send_data generate_pdf(client),
+              filename: "#{client.name}.pdf",
+              type: "application/pdf"
   end
+
+  private
+
+    def generate_pdf(client)
+      Prawn::Document.new do
+        text client.name, align: :center
+        text "Address: #{client.address}"
+        text "Email: #{client.email}"
+      end.render
+    end
 end
